@@ -1,0 +1,166 @@
+services:
+
+  # =========================
+  # NGINX
+  # =========================
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./app:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - silapor-network
+
+  # =========================
+  # PHP
+  # =========================
+  php:
+    build: ./docker/php
+    container_name: php
+    volumes:
+      - ./app:/var/www/html
+    networks:
+      - silapor-network
+
+  # =========================
+  # POSTGRES JAWA BARAT
+  # =========================
+  postgres_jabar:
+    image: postgres:16
+    container_name: postgres_jabar
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db_jabar
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./sql/jabar.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - silapor-network
+
+  # =========================
+  # POSTGRES JAWA TENGAH
+  # =========================
+  postgres_jateng:
+    image: postgres:16
+    container_name: postgres_jateng
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db_jateng
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./sql/jateng.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - silapor-network
+
+  # =========================
+  # POSTGRES JAWA TIMUR
+  # =========================
+  postgres_jatim:
+    image: postgres:16
+    container_name: postgres_jatim
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db_jatim
+    ports:
+      - "5435:5432"
+    volumes:
+      - ./sql/jatim.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - silapor-network
+
+  # =========================
+  # POSTGRES COORDINATOR
+  # =========================
+  postgres_coordinator:
+    image: postgres:16
+    container_name: postgres_coordinator
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: db_coordinator
+    ports:
+      - "5436:5432"
+    volumes:
+      - ./sql/coordinator.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - silapor-network
+
+  # =========================
+  # REDIS MASTER
+  # =========================
+  redis_master:
+    image: redis:7
+    container_name: redis_master
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./docker/redis/redis-master.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - silapor-network
+
+  # =========================
+  # REDIS REPLICA
+  # =========================
+  redis_replica:
+    image: redis:7
+    container_name: redis_replica
+    depends_on:
+      - redis_master
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./docker/redis/redis-replica.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - silapor-network
+
+  # =========================
+  # MONGODB PRIMARY
+  # =========================
+  mongo1:
+    image: mongo:7
+    container_name: mongo1
+    command: --replSet rs0
+    ports:
+      - "27017:27017"
+    networks:
+      - silapor-network
+
+  # =========================
+  # MONGODB SECONDARY
+  # =========================
+  mongo2:
+    image: mongo:7
+    container_name: mongo2
+    command: --replSet rs0
+    ports:
+      - "27018:27017"
+    networks:
+      - silapor-network
+
+  # =========================
+  # MONGODB SECONDARY
+  # =========================
+  mongo3:
+    image: mongo:7
+    container_name: mongo3
+    command: --replSet rs0
+    ports:
+      - "27019:27017"
+    networks:
+      - silapor-network
+
+networks:
+  silapor-network:
+    driver: bridge
