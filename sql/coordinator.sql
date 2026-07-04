@@ -19,18 +19,32 @@ OPTIONS (
     password 'postgres'
 );
 
-IMPORT FOREIGN SCHEMA public
-LIMIT TO (laporan)
-FROM SERVER jabar_server
-INTO jabar;
+CREATE SERVER jateng_server
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (
+    host 'postgres_jateng',
+    dbname 'db_jateng',
+    port '5432'
+);
 
--- lanjutkan untuk jateng
+CREATE USER MAPPING FOR postgres
+SERVER jateng_server
+OPTIONS (
+    user 'postgres',
+    password 'postgres'
+);
 
--- lanjutkan untuk jatim
+CREATE SERVER jatim_server
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (
+    host 'postgres_jatim',
+    dbname 'db_jatim',
+    port '5432'
+);
 
-CREATE VIEW laporan_semua AS
-SELECT * FROM jabar.laporan
-UNION ALL
-SELECT * FROM jateng.laporan
-UNION ALL
-SELECT * FROM jatim.laporan;
+CREATE USER MAPPING FOR postgres
+SERVER jatim_server
+OPTIONS (
+    user 'postgres',
+    password 'postgres'
+);
